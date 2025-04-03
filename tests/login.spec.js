@@ -2,38 +2,44 @@ import { test } from "@playwright/test";
 import { LoginPage } from "../pages/LoginPage";
 import { SecureAreaPage } from "../pages/SecureAreaPage";
 
-test("User can log in", async ({ page }) => {
-  //Arrange
-  const username = "tomsmith";
-  const password = "SuperSecretPassword!";
-  const loginPage = new LoginPage(page);
-  const secureAreaPage = new SecureAreaPage(page);
+test.describe("Authentication flow", () => {
+  const USERNAME = "tomsmith";
+  const PASSWORD = "SuperSecretPassword!";
 
-  //Act
-  await loginPage.goto();
-  await loginPage.login(username, password);
+  let loginPage;
+  let secureAreaPage;
 
-  //Assert
-  await secureAreaPage.verifyLoggedIn();
-});
+  test.beforeEach(async ({ page }) => {
+    loginPage = new LoginPage(page);
+    secureAreaPage = new SecureAreaPage(page);
+    await loginPage.goto();
+  });
 
-test("User can log in and out", async ({ page }) => {
-  // Arrange
-  const username = "tomsmith";
-  const password = "SuperSecretPassword!";
-  const loginPage = new LoginPage(page);
-  const secureAreaPage = new SecureAreaPage(page);
+  test("User can log in", async () => {
+    await test.step("Act", async () => {
+      await loginPage.login(USERNAME, PASSWORD);
+    });
 
-  // Act
-  await loginPage.goto();
-  await loginPage.login(username, password);
+    await test.step("Assert", async () => {
+      await secureAreaPage.verifyLoggedIn();
+    });
+  });
 
-  // Assert
-  await secureAreaPage.verifyLoggedIn();
+  test("User can log in and out", async () => {
+    await test.step("Act", async () => {
+      await loginPage.login(USERNAME, PASSWORD);
+    });
 
-  // Act again
-  await secureAreaPage.logout();
+    await test.step("Assert", async () => {
+      await secureAreaPage.verifyLoggedIn();
+    });
 
-  // Assert again
-  await loginPage.verifyLoginPage();
+    await test.step("Act", async () => {
+      await secureAreaPage.logout();
+    });
+
+    await test.step("Assert", async () => {
+      await loginPage.verifyLoginPage();
+    });
+  });
 });
